@@ -1,0 +1,6 @@
+{
+  "name": "Fuel Station Finder",
+  "description": "Locate nearby fuel stations, track and report real-time fuel prices, and monitor station status flags like queues and fuel availability.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
