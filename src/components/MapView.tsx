@@ -41,7 +41,7 @@ export const MapView: React.FC<MapViewProps> = (props) => {
 
   const [mapEngine, setMapEngine] = useState<'google' | 'leaflet'>(() => {
     const saved = localStorage.getItem('fsf_preferred_map_engine');
-    return saved === 'leaflet' ? 'leaflet' : 'google';
+    return saved === 'google' ? 'google' : 'leaflet';
   });
 
   const [authFailure, setAuthFailure] = useState(false);

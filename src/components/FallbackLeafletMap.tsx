@@ -65,18 +65,31 @@ export const FallbackLeafletMap: React.FC<FallbackLeafletMapProps> = ({
     mapInstanceRef.current = map;
 
     // Force map to recalculate its dimensions after layout renders
-    const timer = setTimeout(() => {
-      map.invalidateSize();
-    }, 200);
+    const t1 = setTimeout(() => map.invalidateSize(), 50);
+    const t2 = setTimeout(() => map.invalidateSize(), 300);
+    const t3 = setTimeout(() => map.invalidateSize(), 800);
 
     const handleResize = () => {
       map.invalidateSize();
     };
     window.addEventListener('resize', handleResize);
 
+    let resizeObserver: ResizeObserver | null = null;
+    if (window.ResizeObserver && mapContainerRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        map.invalidateSize();
+      });
+      resizeObserver.observe(mapContainerRef.current);
+    }
+
     return () => {
-      clearTimeout(timer);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
       window.removeEventListener('resize', handleResize);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
       map.remove();
       mapInstanceRef.current = null;
     };
@@ -170,9 +183,13 @@ export const FallbackLeafletMap: React.FC<FallbackLeafletMapProps> = ({
   }, [focusedStation]);
 
   return (
-    <div className="relative w-full h-full min-h-[400px]">
-      {/* Map Container */}
-      <div ref={mapContainerRef} className="w-full h-full bg-slate-200 z-0" />
+    <div className="relative w-full h-full min-h-[400px] overflow-hidden">
+      {/* Map Container - absolute inset-0 with explicit dimensions ensures Leaflet never collapses to 0px height */}
+      <div
+        ref={mapContainerRef}
+        style={{ width: '100%', height: '100%', minHeight: '100%' }}
+        className="absolute inset-0 w-full h-full bg-slate-200 z-0"
+      />
 
       {/* Engine Switcher & Status Banner */}
       <div className="absolute top-3 left-3 right-14 sm:right-auto sm:max-w-md z-10 pointer-events-auto animate-in slide-in-from-top-2 duration-200">

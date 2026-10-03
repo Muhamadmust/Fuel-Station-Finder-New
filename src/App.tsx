@@ -228,7 +228,7 @@ function FuelStationApp() {
             {/* Left/Main Column: Map or List View */}
             <div className="flex-1 flex flex-col min-w-0 relative h-full overflow-hidden">
               {currentView === 'map' ? (
-                <div className="w-full h-full relative">
+                <div className="w-full h-full min-h-[450px] relative">
                   <MapView
                     stations={filteredStations}
                     userLocation={userLocation}
