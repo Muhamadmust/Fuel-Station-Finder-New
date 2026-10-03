@@ -142,11 +142,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           {onOpenFilters && (
             <button
               onClick={onOpenFilters}
-              className={`min-h-[40px] px-2.5 sm:px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-2xs ${
-                activeFilterCount > 0
-                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                  : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
-              }`}
+              className={`min-h-[40px] px-2.5 sm:px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-2xs ${activeFilterCount > 0
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                }`}
               title="Filter fuel types, cities, and radius"
             >
               <SlidersHorizontal className="w-3.5 h-3.5 text-emerald-600" />
@@ -163,11 +162,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           {onRequestLocation && (
             <button
               onClick={onRequestLocation}
-              className={`min-h-[40px] px-2.5 sm:px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-2xs ${
-                hasUserLocation
-                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
-                  : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
-              }`}
+              className={`min-h-[40px] px-2.5 sm:px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-2xs ${hasUserLocation
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                }`}
               title={hasUserLocation ? 'GPS location locked. Click to refresh' : 'Click to enable device GPS'}
             >
               <Navigation className={`w-3.5 h-3.5 ${hasUserLocation ? 'text-emerald-600 fill-emerald-600' : 'text-slate-500'}`} />
@@ -180,11 +178,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               id="nav-view-map-btn"
               onClick={() => onViewChange('map')}
-              className={`min-h-[36px] flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                currentView === 'map'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-              }`}
+              className={`min-h-[36px] flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${currentView === 'map'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                }`}
               title="Map View"
             >
               <MapIcon className="w-3.5 h-3.5" />
@@ -193,11 +190,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               id="nav-view-list-btn"
               onClick={() => onViewChange('list')}
-              className={`min-h-[36px] flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                currentView === 'list'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-              }`}
+              className={`min-h-[36px] flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${currentView === 'list'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                }`}
               title="List View"
             >
               <List className="w-3.5 h-3.5" />
