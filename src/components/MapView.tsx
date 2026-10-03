@@ -13,13 +13,10 @@ import {
   Navigation,
   MapPin,
   Clock,
-  KeyRound,
-  Layers,
+  AlertCircle,
 } from 'lucide-react';
 import type { StationWithDetails, UserLocation, FuelType } from '../types';
 import { formatPrice, formatTimeAgo, getPriceTierColor, getFlagBadgeInfo } from '../utils/formatters';
-import { FallbackLeafletMap } from './FallbackLeafletMap';
-import { ApiKeyModal } from './ApiKeyModal';
 
 interface MapViewProps {
   stations: StationWithDetails[];
@@ -34,114 +31,36 @@ interface MapViewProps {
 }
 
 export const MapView: React.FC<MapViewProps> = (props) => {
-  const customKey = localStorage.getItem('custom_gmaps_api_key') || '';
-  const rawApiKey = customKey || import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  const rawApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   const apiKey = typeof rawApiKey === 'string' ? rawApiKey.trim().replace(/^["']|["']$/g, '') : '';
-  const hasApiKey = Boolean(apiKey && apiKey !== '');
 
-  const [mapEngine, setMapEngine] = useState<'google' | 'leaflet'>(() => {
-    const saved = localStorage.getItem('fsf_preferred_map_engine');
-    return saved === 'google' ? 'google' : 'leaflet';
-  });
-
-  const [authFailure, setAuthFailure] = useState(false);
-  const [retryKey, setRetryKey] = useState(0);
-  const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
-
-  // Global auth failure interceptor
-  useEffect(() => {
-    const origHandler = (window as any).gm_authFailure;
-    (window as any).gm_authFailure = () => {
-      console.warn('Google Maps gm_authFailure detected (quota, restriction, or billing). Switching to Live Map.');
-      setAuthFailure(true);
-      setMapEngine('leaflet');
-      if (typeof origHandler === 'function') {
-        origHandler();
-      }
-    };
-    return () => {
-      (window as any).gm_authFailure = origHandler;
-    };
-  }, []);
-
-  const handleApplyKey = (newKey: string) => {
-    localStorage.setItem('custom_gmaps_api_key', newKey);
-    localStorage.setItem('fsf_preferred_map_engine', 'google');
-    setAuthFailure(false);
-    setMapEngine('google');
-    setRetryKey((k) => k + 1);
-  };
-
-  const handleUseBackupMap = () => {
-    localStorage.setItem('fsf_preferred_map_engine', 'leaflet');
-    setMapEngine('leaflet');
-  };
-
-  const handleSwitchToGoogle = () => {
-    localStorage.setItem('fsf_preferred_map_engine', 'google');
-    setAuthFailure(false);
-    setMapEngine('google');
-    setRetryKey((k) => k + 1);
-  };
-
-  // If no API key configured, auth failure occurred, or user selected backup map
-  if (!hasApiKey || authFailure || mapEngine === 'leaflet') {
+  if (!apiKey) {
     return (
-      <div className="relative w-full h-full min-h-[400px]">
-        <FallbackLeafletMap
-          {...props}
-          onOpenKeyModal={() => setIsKeyModalOpen(true)}
-          onSwitchToGoogle={hasApiKey ? handleSwitchToGoogle : undefined}
-          hasGoogleKey={hasApiKey}
-        />
-        <ApiKeyModal
-          isOpen={isKeyModalOpen}
-          onClose={() => setIsKeyModalOpen(false)}
-          onApplyKey={handleApplyKey}
-          onUseBackupMap={handleUseBackupMap}
-          currentKey={apiKey}
-        />
+      <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-700 p-8 text-center min-h-[400px]">
+        <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4">
+          <AlertCircle className="w-6 h-6" />
+        </div>
+        <h3 className="font-bold text-base text-slate-900 mb-1">Google Maps API Key Missing</h3>
+        <p className="text-xs text-slate-500 max-w-sm mb-4 leading-relaxed">
+          Please add your Google Maps JavaScript API Key to your <code className="bg-slate-200 px-1 py-0.5 rounded font-mono">.env.local</code> file as <code className="bg-slate-200 px-1 py-0.5 rounded font-mono">VITE_GOOGLE_MAPS_API_KEY</code>.
+        </p>
       </div>
     );
   }
 
   return (
-    <div key={retryKey} className="relative w-full h-full min-h-[400px] bg-slate-100 overflow-hidden">
+    <div className="relative w-full h-full min-h-[400px] bg-slate-100 overflow-hidden">
       <APIProvider
         apiKey={apiKey}
         solutionChannel="GMP_visgl_reactgooglemaps_v1"
       >
-        <MapLoaderContent
-          {...props}
-          apiKey={apiKey}
-          onAuthFailure={() => {
-            setAuthFailure(true);
-            setMapEngine('leaflet');
-          }}
-          onOpenKeyModal={() => setIsKeyModalOpen(true)}
-          onSwitchToLeaflet={handleUseBackupMap}
-        />
+        <MapContent {...props} />
       </APIProvider>
-
-      <ApiKeyModal
-        isOpen={isKeyModalOpen}
-        onClose={() => setIsKeyModalOpen(false)}
-        onApplyKey={handleApplyKey}
-        onUseBackupMap={handleUseBackupMap}
-        currentKey={apiKey}
-      />
     </div>
   );
 };
 
-interface MapLoaderContentProps extends MapViewProps {
-  apiKey: string;
-  onAuthFailure: () => void;
-  onOpenKeyModal: () => void;
-  onSwitchToLeaflet: () => void;
-}
-
-const MapLoaderContent: React.FC<MapLoaderContentProps> = ({
+const MapContent: React.FC<MapViewProps> = ({
   stations,
   userLocation,
   selectedFuelType,
@@ -151,9 +70,6 @@ const MapLoaderContent: React.FC<MapLoaderContentProps> = ({
   focusedStation,
   onSelectStation,
   onRequestLocation,
-  onAuthFailure,
-  onOpenKeyModal,
-  onSwitchToLeaflet,
 }) => {
   const loadingStatus = useApiLoadingStatus();
   const isLoaded = useApiIsLoaded();
@@ -179,50 +95,33 @@ const MapLoaderContent: React.FC<MapLoaderContentProps> = ({
     }
   }, [userLocation, focusedStation]);
 
-  // Watchdog timer: If Google Maps doesn't load within 4.5 seconds, auto-fallback to Leaflet
-  useEffect(() => {
-    if (!isLoaded) {
-      const timer = setTimeout(() => {
-        if (!isLoaded) {
-          console.warn('Google Maps took too long to load. Switching to Live Map.');
-          onAuthFailure();
-        }
-      }, 4500);
-      return () => clearTimeout(timer);
-    }
-  }, [isLoaded, onAuthFailure]);
-
-  // Check for load failures: fallback smoothly
-  if (loadingStatus === APILoadingStatus.FAILED || loadingStatus === APILoadingStatus.AUTH_FAILURE) {
-    return (
-      <FallbackLeafletMap
-        stations={stations}
-        userLocation={userLocation}
-        selectedFuelType={selectedFuelType}
-        averagePrice={averagePrice}
-        focusedStation={focusedStation}
-        onSelectStation={onSelectStation}
-        onRequestLocation={onRequestLocation}
-        onOpenKeyModal={onOpenKeyModal}
-      />
-    );
-  }
-
   // Loading state
   if (!isLoaded || loadingStatus === APILoadingStatus.LOADING) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-700 p-6 text-center">
         <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-        <h3 className="mt-4 font-bold text-sm sm:text-base text-slate-800">Connecting to Google Maps...</h3>
-        <p className="text-xs text-slate-500 mt-1 max-w-xs">
-          Verifying API key &amp; rendering vector tiles
+        <h3 className="mt-4 font-bold text-sm sm:text-base text-slate-800">Loading Google Maps...</h3>
+        <p className="text-xs text-slate-500 mt-1">Rendering satellite &amp; vector road tiles</p>
+      </div>
+    );
+  }
+
+  // Error state
+  if (loadingStatus === APILoadingStatus.FAILED || loadingStatus === APILoadingStatus.AUTH_FAILURE) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-700 p-8 text-center">
+        <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mb-4">
+          <AlertCircle className="w-6 h-6" />
+        </div>
+        <h3 className="font-bold text-base text-slate-900 mb-1">Google Maps Failed to Load</h3>
+        <p className="text-xs text-slate-500 max-w-sm mb-2 leading-relaxed">
+          The Google Maps Platform could not initialize. Please verify that:
         </p>
-        <button
-          onClick={onSwitchToLeaflet}
-          className="mt-4 px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-colors"
-        >
-          Skip &amp; Open Interactive Backup Map
-        </button>
+        <ul className="text-xs text-slate-600 text-left list-disc list-inside space-y-1 mb-4">
+          <li><strong>Maps JavaScript API</strong> is enabled in Google Cloud Console</li>
+          <li>Your API Key is valid and unrestricted (or allows this domain)</li>
+          <li>Billing is enabled on your Google Cloud Project</li>
+        </ul>
       </div>
     );
   }
@@ -373,7 +272,7 @@ const MapLoaderContent: React.FC<MapLoaderContentProps> = ({
         )}
       </Map>
 
-      {/* Floating Buttons */}
+      {/* Floating Buttons: Locate Me */}
       <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
         <button
           onClick={onRequestLocation}
@@ -383,27 +282,9 @@ const MapLoaderContent: React.FC<MapLoaderContentProps> = ({
         >
           <Navigation className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
         </button>
-
-        <button
-          onClick={onSwitchToLeaflet}
-          className="p-2 sm:p-2.5 bg-white/95 backdrop-blur-md hover:bg-white rounded-xl shadow-md border border-slate-200 text-slate-600 hover:text-slate-900 transition-all hover:scale-105 active:scale-95 flex items-center justify-center min-h-[36px] min-w-[36px]"
-          title="Switch to Interactive Backup Map"
-          aria-label="Switch to Interactive Backup Map"
-        >
-          <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600" />
-        </button>
-
-        <button
-          onClick={onOpenKeyModal}
-          className="p-2 sm:p-2.5 bg-white/95 backdrop-blur-md hover:bg-white rounded-xl shadow-md border border-slate-200 text-slate-600 hover:text-slate-900 transition-all hover:scale-105 active:scale-95 flex items-center justify-center min-h-[36px] min-w-[36px]"
-          title="Manage Google Maps API Key"
-          aria-label="Manage Google Maps API Key"
-        >
-          <KeyRound className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500" />
-        </button>
       </div>
 
-      {/* Map Legend */}
+      {/* Map Legend (Bottom-Left) */}
       <div className="absolute bottom-4 left-4 z-10 bg-white/95 backdrop-blur-xs border border-slate-200 rounded-xl p-3 shadow-md text-xs hidden sm:block">
         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Fuel Price Tiers</div>
         <div className="flex items-center gap-3 font-medium text-slate-700">
