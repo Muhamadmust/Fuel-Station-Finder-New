@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // --- STATIONS ---
+    function isValidStation(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 100
+        && data.address is string && data.address.size() > 0 && data.address.size() <= 200
+        && data.latitude is number && data.latitude >= -90.0 && data.latitude <= 90.0
+        && data.longitude is number && data.longitude >= -180.0 && data.longitude <= 180.0;
+    }
+
+    match /stations/{stationId} {
+      allow read: if true;
+      allow create: if isValidId(stationId) && isValidStation(incoming());
+      allow update, delete: if false;
+    }
+
+    // --- PRICE REPORTS ---
+    function isValidPriceReport(data) {
+      return data.stationId is string && data.stationId.size() <= 64
+        && (data.fuelType == 'petrol' || data.fuelType == 'diesel' || data.fuelType == 'premium')
+        && data.price is number && data.price > 0.0 && data.price <= 100000.0
+        && data.reportedBy is string && data.reportedBy.size() <= 128
+        && (request.auth == null || data.reportedBy == request.auth.uid);
+    }
+
+    match /priceReports/{reportId} {
+      allow read: if true;
+      allow create: if isValidId(reportId) && isValidPriceReport(incoming());
+      allow update, delete: if false;
+    }
+
+    // --- FLAGS ---
+    function isValidFlag(data) {
+      return data.stationId is string && data.stationId.size() <= 64
+        && (data.type == 'no_fuel' || data.type == 'long_queue' || data.type == 'closed' || data.type == 'wrong_price')
+        && (!('note' in data) || (data.note is string && data.note.size() <= 300))
+        && data.flaggedBy is string && data.flaggedBy.size() <= 128
+        && (request.auth == null || data.flaggedBy == request.auth.uid);
+    }
+
+    match /flags/{flagId} {
+      allow read: if true;
+      allow create: if isValidId(flagId) && isValidFlag(incoming());
+      allow update, delete: if false;
+    }
+  }
+}

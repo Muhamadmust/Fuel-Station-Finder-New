@@ -1,0 +1,57 @@
+{
+  "entities": {
+    "Station": {
+      "title": "Station",
+      "description": "Fuel station location and metadata",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 100 },
+        "address": { "type": "string", "maxLength": 200 },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "address", "latitude", "longitude", "createdAt"]
+    },
+    "PriceReport": {
+      "title": "PriceReport",
+      "description": "User reported fuel price for a specific fuel type at a station",
+      "type": "object",
+      "properties": {
+        "stationId": { "type": "string", "maxLength": 64 },
+        "fuelType": { "type": "string", "enum": ["petrol", "diesel", "premium"] },
+        "price": { "type": "number" },
+        "reportedBy": { "type": "string", "maxLength": 128 },
+        "reportedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["stationId", "fuelType", "price", "reportedBy", "reportedAt"]
+    },
+    "Flag": {
+      "title": "Flag",
+      "description": "Station incident flag or issue reported by drivers",
+      "type": "object",
+      "properties": {
+        "stationId": { "type": "string", "maxLength": 64 },
+        "type": { "type": "string", "enum": ["no_fuel", "long_queue", "closed", "wrong_price"] },
+        "note": { "type": "string", "maxLength": 300 },
+        "flaggedBy": { "type": "string", "maxLength": 128 },
+        "flaggedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["stationId", "type", "flaggedBy", "flaggedAt"]
+    }
+  },
+  "firestore": {
+    "/stations/{stationId}": {
+      "schema": { "$ref": "#/entities/Station" },
+      "description": "Public directory of fuel stations"
+    },
+    "/priceReports/{reportId}": {
+      "schema": { "$ref": "#/entities/PriceReport" },
+      "description": "Historical and latest fuel price reports logged by drivers"
+    },
+    "/flags/{flagId}": {
+      "schema": { "$ref": "#/entities/Flag" },
+      "description": "Active and past station status flags"
+    }
+  }
+}
