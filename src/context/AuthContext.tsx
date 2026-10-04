@@ -135,7 +135,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const loggedUser: AuthUser = {
           uid: u.uid,
           email: u.email,
+<<<<<<< HEAD
           displayName: u.displayName || 'Google Driver',
+=======
+          displayName: u.displayName || u.email?.split('@')[0] || 'Google Driver',
+>>>>>>> be9c3d8e2dc4d20be89649e395731042fd9ab70f
           photoURL: u.photoURL,
         };
         setUser(loggedUser);
@@ -143,6 +147,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return loggedUser;
       } catch (err: any) {
         console.warn('Google sign-in attempt error:', err?.code, err?.message);
+<<<<<<< HEAD
         // If user intentionally closed popup, notify them
         if (err?.code === 'auth/popup-closed-by-user' || err?.code === 'auth/cancelled-popup-request') {
           throw new Error('Google sign-in popup was closed before completing.');
@@ -159,12 +164,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         saveLocalSession(fallbackUser);
         setUser(fallbackUser);
         return fallbackUser;
+=======
+        
+        if (err?.code === 'auth/popup-closed-by-user' || err?.code === 'auth/cancelled-popup-request') {
+          throw new Error(
+            'Google sign-in popup was closed. If your organization blocked access with "Ask your admin", choose a personal @gmail.com account or use Instant Sign-In below.'
+          );
+        }
+
+        if (err?.code === 'auth/popup-blocked') {
+          throw new Error(
+            'Google sign-in popup was blocked by your browser settings. Please allow popups for this site or use Instant Sign-In below.'
+          );
+        }
+
+        if (err?.code === 'auth/unauthorized-domain') {
+          throw new Error(
+            'This deployment domain is not in the Firebase authorized list. Use Instant Sign-In or Email Sign-In to continue.'
+          );
+        }
+
+        // For any other unexpected restriction, provide friendly fallback
+        throw new Error(
+          err?.message || 'Google sign-in could not be completed. Please use Instant Sign-In below.'
+        );
+>>>>>>> be9c3d8e2dc4d20be89649e395731042fd9ab70f
       }
     } else {
       const fallbackUser: AuthUser = {
         uid: 'g-' + Math.random().toString(36).substring(2, 10),
+<<<<<<< HEAD
         email: 'driver.google@community.fuel',
         displayName: 'Google Verified Driver',
+=======
+        email: 'muhadmustapha5104@gmail.com',
+        displayName: 'Verified Driver',
+>>>>>>> be9c3d8e2dc4d20be89649e395731042fd9ab70f
         photoURL: null,
       };
       saveLocalSession(fallbackUser);

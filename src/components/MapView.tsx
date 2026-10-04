@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import React, { useState, useEffect, useCallback } from 'react';
+=======
+import React, { useState, useEffect } from 'react';
+>>>>>>> be9c3d8e2dc4d20be89649e395731042fd9ab70f
 import {
   APIProvider,
   Map,
@@ -13,12 +17,19 @@ import {
   Navigation,
   MapPin,
   Clock,
+<<<<<<< HEAD
   KeyRound,
 } from 'lucide-react';
 import type { StationWithDetails, UserLocation, FuelType } from '../types';
 import { formatPrice, formatTimeAgo, getPriceTierColor, getFlagBadgeInfo } from '../utils/formatters';
 import { FallbackLeafletMap } from './FallbackLeafletMap';
 import { ApiKeyModal } from './ApiKeyModal';
+=======
+  AlertCircle,
+} from 'lucide-react';
+import type { StationWithDetails, UserLocation, FuelType } from '../types';
+import { formatPrice, formatTimeAgo, getPriceTierColor, getFlagBadgeInfo } from '../utils/formatters';
+>>>>>>> be9c3d8e2dc4d20be89649e395731042fd9ab70f
 
 interface MapViewProps {
   stations: StationWithDetails[];
@@ -33,6 +44,7 @@ interface MapViewProps {
 }
 
 export const MapView: React.FC<MapViewProps> = (props) => {
+<<<<<<< HEAD
   // Check for custom key in local storage first, fallback to env variable
   const customKey = localStorage.getItem('custom_gmaps_api_key') || '';
   const rawApiKey = customKey || import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -78,16 +90,36 @@ export const MapView: React.FC<MapViewProps> = (props) => {
           onApplyKey={handleApplyKey}
           currentKey={apiKey}
         />
+=======
+  const rawApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  const apiKey = typeof rawApiKey === 'string' ? rawApiKey.trim().replace(/^["']|["']$/g, '') : '';
+
+  if (!apiKey) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-700 p-8 text-center min-h-[400px]">
+        <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4">
+          <AlertCircle className="w-6 h-6" />
+        </div>
+        <h3 className="font-bold text-base text-slate-900 mb-1">Google Maps API Key Missing</h3>
+        <p className="text-xs text-slate-500 max-w-sm mb-4 leading-relaxed">
+          Please add your Google Maps JavaScript API Key to your <code className="bg-slate-200 px-1 py-0.5 rounded font-mono">.env.local</code> file as <code className="bg-slate-200 px-1 py-0.5 rounded font-mono">VITE_GOOGLE_MAPS_API_KEY</code>.
+        </p>
+>>>>>>> be9c3d8e2dc4d20be89649e395731042fd9ab70f
       </div>
     );
   }
 
   return (
+<<<<<<< HEAD
     <div key={retryKey} className="relative w-full h-full min-h-[400px] bg-slate-100 overflow-hidden">
+=======
+    <div className="relative w-full h-full min-h-[400px] bg-slate-100 overflow-hidden">
+>>>>>>> be9c3d8e2dc4d20be89649e395731042fd9ab70f
       <APIProvider
         apiKey={apiKey}
         solutionChannel="GMP_visgl_reactgooglemaps_v1"
       >
+<<<<<<< HEAD
         <MapLoaderContent
           {...props}
           apiKey={apiKey}
@@ -102,10 +134,15 @@ export const MapView: React.FC<MapViewProps> = (props) => {
         onApplyKey={handleApplyKey}
         currentKey={apiKey}
       />
+=======
+        <MapContent {...props} />
+      </APIProvider>
+>>>>>>> be9c3d8e2dc4d20be89649e395731042fd9ab70f
     </div>
   );
 };
 
+<<<<<<< HEAD
 interface MapLoaderContentProps extends MapViewProps {
   apiKey: string;
   onAuthFailure: () => void;
@@ -113,6 +150,9 @@ interface MapLoaderContentProps extends MapViewProps {
 }
 
 const MapLoaderContent: React.FC<MapLoaderContentProps> = ({
+=======
+const MapContent: React.FC<MapViewProps> = ({
+>>>>>>> be9c3d8e2dc4d20be89649e395731042fd9ab70f
   stations,
   userLocation,
   selectedFuelType,
@@ -122,8 +162,11 @@ const MapLoaderContent: React.FC<MapLoaderContentProps> = ({
   focusedStation,
   onSelectStation,
   onRequestLocation,
+<<<<<<< HEAD
   onAuthFailure,
   onOpenKeyModal,
+=======
+>>>>>>> be9c3d8e2dc4d20be89649e395731042fd9ab70f
 }) => {
   const loadingStatus = useApiLoadingStatus();
   const isLoaded = useApiIsLoaded();
@@ -136,7 +179,10 @@ const MapLoaderContent: React.FC<MapLoaderContentProps> = ({
   const [center, setCenter] = useState<UserLocation>(defaultCenter);
   const [zoom, setZoom] = useState<number>(13);
 
+<<<<<<< HEAD
   // Sync center when user location or focused station changes
+=======
+>>>>>>> be9c3d8e2dc4d20be89649e395731042fd9ab70f
   useEffect(() => {
     if (focusedStation) {
       setCenter({ lat: focusedStation.latitude, lng: focusedStation.longitude });
@@ -150,6 +196,7 @@ const MapLoaderContent: React.FC<MapLoaderContentProps> = ({
     }
   }, [userLocation, focusedStation]);
 
+<<<<<<< HEAD
   // Check for load failures: fallback smoothly instead of crashing
   if (loadingStatus === APILoadingStatus.FAILED || loadingStatus === APILoadingStatus.AUTH_FAILURE) {
     return (
@@ -173,11 +220,43 @@ const MapLoaderContent: React.FC<MapLoaderContentProps> = ({
         <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
         <h3 className="mt-4 font-bold text-sm sm:text-base text-slate-800">Connecting to Google Maps...</h3>
         <p className="text-xs text-slate-500 mt-1">Rendering high-resolution vector map tiles</p>
+=======
+  // Loading state
+  if (!isLoaded || loadingStatus === APILoadingStatus.LOADING) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-700 p-6 text-center">
+        <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+        <h3 className="mt-4 font-bold text-sm sm:text-base text-slate-800">Loading Google Maps...</h3>
+        <p className="text-xs text-slate-500 mt-1">Rendering satellite &amp; vector road tiles</p>
       </div>
     );
   }
 
+  // Error state
+  if (loadingStatus === APILoadingStatus.FAILED || loadingStatus === APILoadingStatus.AUTH_FAILURE) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-700 p-8 text-center">
+        <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mb-4">
+          <AlertCircle className="w-6 h-6" />
+        </div>
+        <h3 className="font-bold text-base text-slate-900 mb-1">Google Maps Failed to Load</h3>
+        <p className="text-xs text-slate-500 max-w-sm mb-2 leading-relaxed">
+          The Google Maps Platform could not initialize. Please verify that:
+        </p>
+        <ul className="text-xs text-slate-600 text-left list-disc list-inside space-y-1 mb-4">
+          <li><strong>Maps JavaScript API</strong> is enabled in Google Cloud Console</li>
+          <li>Your API Key is valid and unrestricted (or allows this domain)</li>
+          <li>Billing is enabled on your Google Cloud Project</li>
+        </ul>
+>>>>>>> be9c3d8e2dc4d20be89649e395731042fd9ab70f
+      </div>
+    );
+  }
+
+<<<<<<< HEAD
   // Loaded map with real tiles and markers
+=======
+>>>>>>> be9c3d8e2dc4d20be89649e395731042fd9ab70f
   return (
     <div className="relative w-full h-full">
       <Map
@@ -324,7 +403,11 @@ const MapLoaderContent: React.FC<MapLoaderContentProps> = ({
         )}
       </Map>
 
+<<<<<<< HEAD
       {/* Floating Buttons: Locate Me + Key Button */}
+=======
+      {/* Floating Buttons: Locate Me */}
+>>>>>>> be9c3d8e2dc4d20be89649e395731042fd9ab70f
       <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
         <button
           onClick={onRequestLocation}
@@ -334,6 +417,7 @@ const MapLoaderContent: React.FC<MapLoaderContentProps> = ({
         >
           <Navigation className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
         </button>
+<<<<<<< HEAD
 
         <button
           onClick={onOpenKeyModal}
@@ -343,6 +427,8 @@ const MapLoaderContent: React.FC<MapLoaderContentProps> = ({
         >
           <KeyRound className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500" />
         </button>
+=======
+>>>>>>> be9c3d8e2dc4d20be89649e395731042fd9ab70f
       </div>
 
       {/* Map Legend (Bottom-Left) */}

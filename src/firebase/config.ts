@@ -56,6 +56,12 @@ let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let db: Firestore | null = null;
 export const googleProvider = new GoogleAuthProvider();
+<<<<<<< HEAD
+=======
+googleProvider.setCustomParameters({
+  prompt: 'select_account',
+});
+>>>>>>> be9c3d8e2dc4d20be89649e395731042fd9ab70f
 
 if (isFirebaseConfigured) {
   try {
